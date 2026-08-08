@@ -9,10 +9,14 @@ Runs once per invocation (GitHub Actions calls it 3x/day). Flow:
   5. advance state.next and write state.json (workflow commits it)
 
 Env vars (GitHub Actions secrets / vars):
-  IG_USER_ID        Instagram Business/Creator user id (numeric)
-  IG_ACCESS_TOKEN   long-lived or system-user token with content-publish perms
+  IG_USER_ID        Instagram user id (numeric). For the Instagram-login flow
+                    this is the id from GET graph.instagram.com/me?fields=user_id
+  IG_ACCESS_TOKEN   long-lived token with content-publish perms
   VIDEO_BASE_URL    public base URL for the videos/ dir, WITH trailing slash
-                    e.g. https://raw.githubusercontent.com/<user>/<repo>/main/videos/
+                    e.g. https://cdn.jsdelivr.net/gh/<user>/<repo>@main/videos/
+  GRAPH_HOST        API host. Use "graph.instagram.com" for the Instagram-login
+                    flow (API setup with Instagram login) or "graph.facebook.com"
+                    for the Facebook-login flow. Default graph.instagram.com.
   GRAPH_VERSION     optional, default v21.0
 """
 import json, os, sys, time
@@ -20,10 +24,11 @@ import urllib.parse, urllib.request, urllib.error
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 GRAPH = os.environ.get("GRAPH_VERSION", "v21.0")
+HOST = os.environ.get("GRAPH_HOST", "graph.instagram.com")
 IG_USER = os.environ["IG_USER_ID"]
 TOKEN = os.environ["IG_ACCESS_TOKEN"]
 BASE = os.environ["VIDEO_BASE_URL"]
-API = f"https://graph.facebook.com/{GRAPH}"
+API = f"https://{HOST}/{GRAPH}"
 
 
 def _req(url, data=None):
