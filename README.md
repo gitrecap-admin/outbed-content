@@ -56,7 +56,7 @@ Use the **Graph API Explorer** (developers.facebook.com/tools/explorer):
 ```
 git init && git add . && git commit -m "outbed auto-poster"
 git branch -M main
-git remote add origin https://github.com/<you>/<repo>.git
+git remote add origin https://github.com/gitrecap-admin/outbed-content.git
 git push -u origin main
 ```
 
@@ -64,7 +64,7 @@ git push -u origin main
 Repo → *Settings → Secrets and variables → Actions*:
 - **Secrets**: `IG_USER_ID`, `IG_ACCESS_TOKEN`
 - **Variable**: `VIDEO_BASE_URL` =
-  `https://cdn.jsdelivr.net/gh/<you>/<repo>@main/videos/`
+  `https://cdn.jsdelivr.net/gh/gitrecap-admin/outbed-content@main/videos/`
   (jsDelivr serves the repo's videos over a CDN with the correct
   `video/mp4` type. Raw githubusercontent also works but MIME is less reliable.)
 
