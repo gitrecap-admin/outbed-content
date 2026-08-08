@@ -1,0 +1,1 @@
+# post.py uses only the Python standard library — no external deps needed.
