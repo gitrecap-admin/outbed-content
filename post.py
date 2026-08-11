@@ -50,7 +50,11 @@ def create_container(video_url, caption):
     return r["id"]
 
 
-def wait_finished(cid, tries=30, delay=10):
+def wait_finished(cid, tries=90, delay=10):
+    # Reels processing is usually <1 min, but Instagram occasionally stalls a
+    # container for several minutes. Poll patiently (up to ~15 min) so a transient
+    # slow-down doesn't fail the run. On timeout we exit non-zero WITHOUT advancing
+    # state, so the next scheduled slot simply retries this same post.
     for _ in range(tries):
         r = _req(f"{API}/{cid}?fields=status_code&access_token={urllib.parse.quote(TOKEN)}")
         s = r.get("status_code")
@@ -59,7 +63,7 @@ def wait_finished(cid, tries=30, delay=10):
         if s == "ERROR":
             raise SystemExit(f"container processing failed: {r}")
         time.sleep(delay)
-    raise SystemExit("timed out waiting for container to finish processing")
+    raise SystemExit("timed out waiting for container to finish processing (will retry next run)")
 
 
 def publish(cid):
