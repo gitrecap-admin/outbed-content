@@ -1,3 +1,4 @@
 .DS_Store
 __pycache__/
 *.pyc
+reserved.json   # per-run scratch: which container publish.py must publish

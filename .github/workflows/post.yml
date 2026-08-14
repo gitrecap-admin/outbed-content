@@ -27,23 +27,40 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Publish next Reel
+      # Dupe-proof publish, in three ordered steps:
+      #   1. reserve   — build+process the media container, advance state.json
+      #   2. push      — commit state.json BEFORE anything is posted
+      #   3. publish   — the one non-idempotent call, runs last
+      # Steps fail-fast: if reserve or the push fails, publish never runs and the
+      # next scheduled slot retries the same Reel. If publish fails after IG has
+      # already accepted the Reel, state.json is already advanced+pushed, so the
+      # next run moves on instead of re-posting. Result: never a duplicate.
+
+      - name: Reserve next Reel (build container + advance state)
         env:
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
           VIDEO_BASE_URL: ${{ vars.VIDEO_BASE_URL }}
           GRAPH_HOST: graph.instagram.com   # Instagram-login flow; use graph.facebook.com for FB-login
           GRAPH_VERSION: v21.0
-        run: python post.py
+        run: python reserve.py
 
-      - name: Commit advanced state
+      - name: Commit advanced state (before publishing)
         run: |
           if ! git diff --quiet state.json; then
             git config user.name  "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add state.json
-            git commit -m "chore: advance post state [skip ci]"
-            git push
+            git commit -m "chore: reserve post slot [skip ci]"
+            git push   # if this fails, the job stops here and nothing is published
           else
-            echo "state.json unchanged (queue empty or no publish); nothing to commit."
+            echo "state.json unchanged (queue empty); nothing to reserve/commit."
           fi
+
+      - name: Publish reserved Reel
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          GRAPH_HOST: graph.instagram.com
+          GRAPH_VERSION: v21.0
+        run: python publish.py
