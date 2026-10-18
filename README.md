@@ -1,11 +1,11 @@
-# Outbed — free auto-poster (Instagram Reels, 3/day)
+# Outbed — free auto-poster (Instagram Reels, 1/day)
 
 Publishes your meme Reels to Instagram automatically, **$0**:
-- **GitHub Actions** cron runs 3×/day (free & unmetered on public repos).
+- **GitHub Actions** cron runs once a day (free & unmetered on public repos).
 - **Instagram Graph API** publishes each Reel (no fee).
 - Videos are hosted **from this repo** via a free CDN — no S3/hosting bill.
 
-One Reel per run × 3 runs/day. `posts.json` is the queue (101 posts, themes
+One Reel per run, one run a day. `posts.json` is the queue (themes
 interleaved); `state.json` tracks how many have gone out.
 
 ---
@@ -71,13 +71,13 @@ Repo → *Settings → Secrets and variables → Actions*:
 ### 6. Turn it on
 - Repo → *Actions* tab → enable workflows.
 - Click **Post Outbed Reel → Run workflow** once to test (posts the next queued Reel now).
-- After that the three daily crons run automatically.
+- After that the daily cron runs automatically.
 
 ---
 
 ## Schedule
 Edit the `cron:` lines in `.github/workflows/post.yml`. They're **UTC**.
-Defaults = 08:00 / 13:00 / 19:00 **IST**. For your timezone, subtract your
+Default = 09:00 **IST**. For your timezone, subtract your
 UTC offset from the local hour you want.
 
 ## Notes
