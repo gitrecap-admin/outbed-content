@@ -29,6 +29,8 @@ Env vars: same as publish.py (IG_USER_ID, IG_ACCESS_TOKEN, VIDEO_BASE_URL,
 GRAPH_HOST, GRAPH_VERSION).
 """
 import json, os, time
+from datetime import datetime
+from zoneinfo import ZoneInfo
 import urllib.parse, urllib.request, urllib.error
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -82,6 +84,15 @@ def main():
     state = json.load(open(os.path.join(HERE, "state.json")))
     i = state.get("next", 0)
 
+    # One Reel per IST day. GitHub often starts scheduled runs hours late, so a
+    # manual "Run workflow" may already have posted today; skip in that case.
+    today = datetime.now(ZoneInfo("Asia/Kolkata")).date().isoformat()
+    if state.get("last_date") == today and os.environ.get("FORCE") != "1":
+        print(f"already posted today ({today}); nothing to reserve.")
+        with open(RESERVED, "w") as f:
+            json.dump({"index": None}, f)
+        return
+
     if i >= len(posts):
         print("queue empty — all posts published. nothing to reserve.")
         # Clear any stale reservation so publish.py is a no-op this run.
@@ -105,6 +116,7 @@ def main():
         json.dump({"index": i, "file": item["file"], "cid": cid}, f, indent=2)
 
     state["next"] = i + 1
+    state["last_date"] = today
     with open(os.path.join(HERE, "state.json"), "w") as f:
         json.dump(state, f, indent=2)
     print(f"  reserved cid {cid}; state advanced -> next={state['next']}")
